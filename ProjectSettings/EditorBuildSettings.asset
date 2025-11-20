@@ -6,11 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
+    path: Assets/Scenes/Start.unity
+    guid: b29bf1106ce3e469c8753771b48470a1
+  - enabled: 1
+    path: Assets/Scenes/Casino.unity
     guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/Scenes/Blackjack.unity
     guid: e08a1e3cafd4d4d1fa34fbfbba5d3b9a
+  - enabled: 1
+    path: Assets/Scenes/HighLow.unity
+    guid: 4f4d537f098634023be451ea4383f8d3
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
