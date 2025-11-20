@@ -3,7 +3,7 @@ using UnityEngine.SceneManagement;
 
 public class ExitToCasino : MonoBehaviour
 {
-    [SerializeField] string casinoScene = "SampleScene";
+    [SerializeField] string casinoScene = "Casino";
 
     public void ExitGame()
     {

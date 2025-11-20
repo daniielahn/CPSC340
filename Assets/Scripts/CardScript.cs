@@ -1,37 +1,38 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq.Expressions;
+﻿// CardScript.cs (patch)
 using UnityEngine;
 
 public class CardScript : MonoBehaviour
 {
-    // Value of card, 2 of clubs = 2, etc
+    [Header("Value")]
     public int value = 0;
 
-    public int GetValueOfCard()
-    {
-        return value;
+    [Header("Rendering")]
+    [SerializeField] SpriteRenderer spriteRenderer;
+    [SerializeField] Sprite backSprite; // set this from HL_DeckScript in scene
+
+    void Awake() {
+        if (!spriteRenderer) spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
-    public void SetValue(int newValue)
-    {
-        value = newValue;
-    }
+    public int GetValueOfCard() => value;
+    public void SetValue(int newValue) => value = newValue;
 
-    public string GetSpriteName()
-    {
-        return GetComponent<SpriteRenderer>().sprite.name;
-    }
+    public string GetSpriteName() => spriteRenderer && spriteRenderer.sprite ? spriteRenderer.sprite.name : "";
 
     public void SetSprite(Sprite newSprite)
     {
-        gameObject.GetComponent<SpriteRenderer>().sprite = newSprite;
+        if (!spriteRenderer) spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = newSprite;
+        GetComponent<Renderer>().enabled = true;   // make sure it shows
     }
+    
+    public void SetBack(Sprite s) { backSprite = s; }
 
-    public void ResetCard()
-    {
-        Sprite back = GameObject.Find("Deck").GetComponent<DeckScript>().GetCardBack();
-        gameObject.GetComponent<SpriteRenderer>().sprite = back;
+    public void ResetCard() {
+        if (!spriteRenderer) spriteRenderer = GetComponent<SpriteRenderer>();
+        spriteRenderer.sprite = backSprite;
         value = 0;
+        GetComponent<Renderer>().enabled = true;
     }
+    
 }

@@ -38,7 +38,7 @@ public class CasinoToBlackjack : MonoBehaviour
             if (playerMove) playerMove.enabled = true;
 
             // (optional) set casino active again
-            var casino = SceneManager.GetSceneByName("SampleScene");
+            var casino = SceneManager.GetSceneByName("Casino");
             if (casino.IsValid()) SceneManager.SetActiveScene(casino);
         };
     }

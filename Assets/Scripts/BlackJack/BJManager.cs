@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class BJManager : MonoBehaviour
 {
     [Header("Buttons")]
     public Button dealBtn;
@@ -10,7 +10,6 @@ public class GameManager : MonoBehaviour
     public Button standBtn;
     public Button betBtn;   // chip button
     bool bettingLocked = false;
-
 
     [Header("HUD Texts")]
     public Text scoreText;
@@ -52,7 +51,7 @@ public class GameManager : MonoBehaviour
         mainText.gameObject.SetActive(false);
         UpdateScoresHud();
         UpdateBetsHud();
-        UpdateCashHud();
+        UpdateCashHud(); // <- reads BankrollManager
     }
 
     // =========================
@@ -62,18 +61,18 @@ public class GameManager : MonoBehaviour
     {
         const int defaultBet = 20;
 
-        // If player hasn't placed a bet yet, auto-bet $20
+        // If player hasn't placed a bet yet, auto-bet $20 from shared bankroll
         if (playerBet == 0)
         {
-            if (playerScript.GetMoney() >= defaultBet)
+            if (BankrollManager.I.TryWithdraw(defaultBet))
             {
                 playerBet = defaultBet;
-                playerScript.AdjustMoney(-defaultBet);
             }
             else
             {
                 mainText.text = "Not enough cash to bet.";
                 mainText.gameObject.SetActive(true);
+                UpdateCashHud();
                 return;
             }
         }
@@ -98,10 +97,10 @@ public class GameManager : MonoBehaviour
         hitBtn.gameObject.SetActive(true);
         standBtn.gameObject.SetActive(true);
         standBtnText.text = "Stand";
+
         // Lock betting during active hand
         bettingLocked = true;
         betBtn.interactable = false;
-
 
         UpdateScoresHud();
         UpdateBetsHud();
@@ -159,12 +158,12 @@ public class GameManager : MonoBehaviour
         else if (playerBust || (!dealerBust && dealerScript.handValue > playerScript.handValue))
         {
             mainText.text = "Dealer wins!";
-            // lose bet (do nothing)
+            // lose bet (do nothing; bet already withdrawn)
         }
         else if (dealerBust || playerScript.handValue > dealerScript.handValue)
         {
             mainText.text = "You win!";
-            PayoutPlayer(playerBet * 2); // get back bet + winnings
+            PayoutPlayer(playerBet * 2); // stake + winnings (1:1)
         }
         else // push
         {
@@ -176,10 +175,10 @@ public class GameManager : MonoBehaviour
         playerBet = 0;
         UpdateBetsHud();
         UpdateCashHud();
+
         // Unlock betting for next round
         bettingLocked = false;
         betBtn.interactable = true;
-
     }
 
     bool CheckNaturalsAfterDeal()
@@ -200,7 +199,7 @@ public class GameManager : MonoBehaviour
         else if (playerBJ)
         {
             mainText.text = "Blackjack! Paid 3:2";
-            int payout = Mathf.RoundToInt(playerBet * 2.5f); // bet + 1.5× winnings
+            int payout = Mathf.RoundToInt(playerBet * 2.5f); // stake + 1.5×
             PayoutPlayer(payout);
         }
         else
@@ -221,18 +220,18 @@ public class GameManager : MonoBehaviour
     }
 
     // =========================
-    // BUTTON PAYOUT HELPERS
+    // PAYOUT HELPERS (shared bankroll)
     // =========================
     void PayoutPlayer(int amount)
     {
-        playerScript.AdjustMoney(amount);
-        cashText.text = "$" + playerScript.GetMoney();
+        BankrollManager.I.Deposit(amount);
+        UpdateCashHud();
     }
 
     void RefundPlayerBet()
     {
-        playerScript.AdjustMoney(playerBet);
-        cashText.text = "$" + playerScript.GetMoney();
+        BankrollManager.I.Deposit(playerBet);
+        UpdateCashHud();
     }
 
     // =========================
@@ -241,20 +240,20 @@ public class GameManager : MonoBehaviour
     public void BetClicked()
     {
         int chipValue = 20; // each click adds $20
-        if (bettingLocked)
-            return;  // Ignore bet presses during a hand
+        if (bettingLocked) return;  // Ignore bet presses during a hand
 
-        if (playerScript.GetMoney() < chipValue)
+        if (BankrollManager.I.TryWithdraw(chipValue))
+        {
+            playerBet += chipValue;
+            UpdateBetsHud();
+            UpdateCashHud();
+        }
+        else
         {
             mainText.text = "Not enough cash.";
             mainText.gameObject.SetActive(true);
-            return;
+            UpdateCashHud();
         }
-
-        playerBet += chipValue;
-        playerScript.AdjustMoney(-chipValue);
-        UpdateBetsHud();
-        UpdateCashHud();
     }
 
     // =========================
@@ -282,6 +281,6 @@ public class GameManager : MonoBehaviour
 
     void UpdateCashHud()
     {
-        cashText.text = "$" + playerScript.GetMoney();
+        cashText.text = "$" + BankrollManager.I.Balance;
     }
 }
